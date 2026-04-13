@@ -53,3 +53,19 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- fail "Either github.personalAccessToken or github.existingSecret must be set" -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "github-mcp-server.authSecretName" -}}
+{{- if .Values.auth.existingSecret -}}
+{{- .Values.auth.existingSecret -}}
+{{- else -}}
+{{- printf "%s-mcp-auth" (include "github-mcp-server.fullname" .) -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "github-mcp-server.validateAuth" -}}
+{{- if .Values.auth.enabled -}}
+{{- if and (not .Values.auth.existingSecret) (not .Values.auth.token) -}}
+{{- fail "When auth.enabled=true, either auth.token or auth.existingSecret must be set" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}

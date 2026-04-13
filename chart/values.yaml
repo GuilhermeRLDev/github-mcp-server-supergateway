@@ -38,7 +38,7 @@ service:
 route:
   enabled: true
   host: ""
-  path: /mcp
+  path: /
   tls:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect
@@ -89,9 +89,17 @@ github:
   serverName: ""
   serverTitle: ""
 
+auth:
+  # Set to true to require a static Bearer token on all MCP requests.
+  # Exempt: /healthz (OpenShift probes) and OPTIONS (CORS preflight).
+  enabled: false
+  token: ""           # dev/test only — prefer existingSecret in production
+  existingSecret: ""  # name of a pre-existing K8s Secret
+  secretKey: MCP_AUTH_TOKEN
+
 supergateway:
   port: 8000
-  outputTransport: streamableHttp
+  outputTransport: sse
   streamableHttpPath: /mcp
   stateful: true
   sessionTimeout: 60000

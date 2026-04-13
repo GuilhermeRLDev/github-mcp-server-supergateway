@@ -16,7 +16,8 @@ RUN npm install -g supergateway@${SUPERGATEWAY_VERSION} \
 WORKDIR /app
 COPY --from=builder /go/bin/github-mcp-server /usr/local/bin/github-mcp-server
 COPY scripts/entrypoint.sh /app/entrypoint.sh
-RUN chmod 0555 /app/entrypoint.sh /usr/local/bin/github-mcp-server \
+COPY scripts/proxy.js /app/proxy.js
+RUN chmod 0555 /app/entrypoint.sh /app/proxy.js /usr/local/bin/github-mcp-server \
     && chgrp -R 0 /app /usr/local/bin/github-mcp-server \
     && chmod -R g=u /app
 USER 1001

@@ -30,10 +30,17 @@ podman build -f Dockerfile.ocp   -t quay.io/YOUR_ORG/github-mcp-server-supergate
 podman push quay.io/YOUR_ORG/github-mcp-server-supergateway:0.32.0
 ```
 
+## Generate a new token for the MCP Server
+
+```bash 
+TOKEN=$(openssl rand -base64 32 | tr -d '=+/' | cut -c1-43)
+```
+
 ## Install the chart
 
 ```bash
-helm upgrade --install github-mcp ./chart   --namespace mcp   --create-namespace   --set image.repository=quay.io/YOUR_ORG/github-mcp-server-supergateway   --set image.tag=0.32.0   --set github.personalAccessToken=YOUR_GITHUB_PAT
+helm install --install github-mcp ./chart --set auth.enabled=true auth.token="$TOKEN" --set image.repository="quay.io/YOUR_ORG/github-mcp-server-supergateway" --set github.personalAccessToken=YOUR_GITHUB_PAT
+
 ```
 
 For better secret hygiene, create a secret separately and reference it:
@@ -78,6 +85,19 @@ Your MCP endpoint will typically be:
 ```text
 https://<route-host>/mcp
 ```
+
+## Addind remore MCP Server to Claude
+
+```bash
+claude mcp add-json github-ocp '{
+  "type": "sse",
+  "url": "https://github-mcp-github-mcp-server-g-bot.apps-crc.testing/mcp",
+  "headers": {
+    "Authorization": "Bearer $TOKEN"
+  }
+}'
+```
+Make sure you have a variable in the session with the $TOKEN you used to setup the server on OCP
 
 ## Notes
 
