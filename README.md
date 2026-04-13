@@ -39,7 +39,7 @@ TOKEN=$(openssl rand -base64 32 | tr -d '=+/' | cut -c1-43)
 ## Install the chart
 
 ```bash
-helm install --install github-mcp ./chart --set auth.enabled=true auth.token="$TOKEN" --set image.repository="quay.io/YOUR_ORG/github-mcp-server-supergateway" --set github.personalAccessToken=YOUR_GITHUB_PAT
+helm upgrade --install github-mcp ./chart --set auth.enabled=true --set auth.token="$TOKEN" --set image.repository="quay.io/YOUR_ORG/github-mcp-server-supergateway" --set github.personalAccessToken=YOUR_GITHUB_PAT
 
 ```
 
@@ -89,15 +89,25 @@ https://<route-host>/mcp
 ## Addind remore MCP Server to Claude
 
 ```bash
-claude mcp add-json github-ocp '{
+claude mcp add-json github-ocp "$(cat <<'HEREDOC'
+{
   "type": "sse",
   "url": "https://github-mcp-github-mcp-server-g-bot.apps-crc.testing/mcp",
   "headers": {
-    "Authorization": "Bearer $TOKEN"
+    "Authorization": "Bearer REPLACE_WITH_TOKEN"
   }
-}'
+}
+HEREDOC
+)"
 ```
-Make sure you have a variable in the session with the $TOKEN you used to setup the server on OCP
+
+Replace `REPLACE_WITH_TOKEN` with your actual token value, or expand it inline:
+
+```bash
+claude mcp add-json github-ocp "{\"type\":\"sse\",\"url\":\"https://github-mcp-github-mcp-server-g-bot.apps-crc.testing/mcp\",\"headers\":{\"Authorization\":\"Bearer $TOKEN\"}}"
+```
+
+Make sure `$TOKEN` is set in your shell session to the same value used when deploying the chart.
 
 ## Notes
 

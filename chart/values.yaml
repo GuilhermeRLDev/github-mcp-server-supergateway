@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   # REQUIRED: replace with your actual registry path, e.g. ghcr.io/your-org/github-mcp-server-supergateway
   repository: ""
-  tag: "0.32.0"
+  tag: "0.1.4"
   pullPolicy: IfNotPresent
   pullSecrets: []
 
@@ -81,7 +81,7 @@ github:
   toolsets: "repos,issues,pull_requests,actions,code_security"
   tools: ""
 
-  readOnly: true
+  readOnly: false
   dynamicToolsets: false
   insiders: false
 

@@ -19,7 +19,7 @@ const OAUTH_PATHS = new Set([
 // When MCP_AUTH_TOKEN is set, every non-exempt request must carry
 //   Authorization: Bearer <token>
 // Exempt: /healthz (OpenShift probes) and OPTIONS (CORS preflight).
-const AUTH_TOKEN = process.env.MCP_AUTH_TOKEN || '';
+const AUTH_TOKEN = (process.env.MCP_AUTH_TOKEN || '').trim();
 const HEALTH_PATH = '/healthz';
 
 function isExempt(req) {
@@ -30,8 +30,8 @@ function checkAuth(req, res) {
   if (!AUTH_TOKEN) return true;
   if (isExempt(req)) return true;
   const header = req.headers['authorization'] || '';
-  const [scheme, token] = header.split(' ');
-  if (scheme === 'Bearer' && token === AUTH_TOKEN) return true;
+  const match = /^Bearer\s+(\S+)$/i.exec(header);
+  if (match && match[1] === AUTH_TOKEN) return true;
   res.writeHead(401, {
     'Content-Type': 'application/json',
     'WWW-Authenticate': 'Bearer realm="mcp"',

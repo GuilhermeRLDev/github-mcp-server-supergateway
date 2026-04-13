@@ -3,7 +3,7 @@ name: github-mcp-server
 description: Helm chart for running the official GitHub MCP Server on OpenShift using Supergateway as an HTTP bridge.
 type: application
 version: 0.1.0
-appVersion: "0.32.0"
+appVersion: "0.1.4"
 keywords:
   - mcp
   - github
