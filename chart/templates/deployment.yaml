@@ -1,0 +1,150 @@
+{{- include "github-mcp-server.validateSecret" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "github-mcp-server.fullname" . }}
+  labels:
+    {{- include "github-mcp-server.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "github-mcp-server.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "github-mcp-server.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "github-mcp-server.serviceAccountName" . }}
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- range . }}
+        - name: {{ . }}
+        {{- end }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: github-mcp-server
+          image: "{{ required "image.repository must be set to your registry path" .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: GITHUB_PERSONAL_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "github-mcp-server.secretName" . }}
+                  key: {{ .Values.github.secretKey }}
+            {{- if .Values.github.host }}
+            - name: GITHUB_HOST
+              value: {{ .Values.github.host | quote }}
+            {{- end }}
+            {{- if .Values.github.toolsets }}
+            - name: GITHUB_TOOLSETS
+              value: {{ .Values.github.toolsets | quote }}
+            {{- end }}
+            {{- if .Values.github.tools }}
+            - name: GITHUB_TOOLS
+              value: {{ .Values.github.tools | quote }}
+            {{- end }}
+            - name: GITHUB_READ_ONLY
+              value: {{ ternary "1" "0" .Values.github.readOnly | quote }}
+            - name: GITHUB_DYNAMIC_TOOLSETS
+              value: {{ ternary "1" "0" .Values.github.dynamicToolsets | quote }}
+            - name: GITHUB_INSIDERS
+              value: {{ ternary "true" "false" .Values.github.insiders | quote }}
+            {{- if .Values.github.serverName }}
+            - name: GITHUB_MCP_SERVER_NAME
+              value: {{ .Values.github.serverName | quote }}
+            {{- end }}
+            {{- if .Values.github.serverTitle }}
+            - name: GITHUB_MCP_SERVER_TITLE
+              value: {{ .Values.github.serverTitle | quote }}
+            {{- end }}
+            - name: MCP_PORT
+              value: {{ .Values.supergateway.port | quote }}
+            - name: MCP_OUTPUT_TRANSPORT
+              value: {{ .Values.supergateway.outputTransport | quote }}
+            - name: MCP_STREAMABLE_HTTP_PATH
+              value: {{ .Values.supergateway.streamableHttpPath | quote }}
+            - name: MCP_STATEFUL
+              value: {{ ternary "1" "0" .Values.supergateway.stateful | quote }}
+            - name: MCP_SESSION_TIMEOUT
+              value: {{ .Values.supergateway.sessionTimeout | quote }}
+            - name: MCP_LOG_LEVEL
+              value: {{ .Values.supergateway.logLevel | quote }}
+            {{- if .Values.supergateway.cors.enabled }}
+            - name: MCP_CORS
+              value: {{ if .Values.supergateway.cors.allowedOrigins }}{{ join "," .Values.supergateway.cors.allowedOrigins | quote }}{{ else }}"*"{{ end }}
+            {{- end }}
+            {{- if .Values.supergateway.extraArgs }}
+            - name: MCP_EXTRA_ARGS
+              value: {{ join " " .Values.supergateway.extraArgs | quote }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.extraEnvFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if .Values.probes.readiness.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readiness.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+          {{- end }}
+          {{- if .Values.probes.liveness.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.liveness.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

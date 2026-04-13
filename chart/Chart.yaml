@@ -1,0 +1,17 @@
+apiVersion: v2
+name: github-mcp-server
+description: Helm chart for running the official GitHub MCP Server on OpenShift using Supergateway as an HTTP bridge.
+type: application
+version: 0.1.0
+appVersion: "0.32.0"
+keywords:
+  - mcp
+  - github
+  - openshift
+  - supergateway
+home: https://github.com/github/github-mcp-server
+sources:
+  - https://github.com/github/github-mcp-server
+  - https://github.com/supercorp-ai/supergateway
+maintainers:
+  - name: Guilherme Rossetti Lima

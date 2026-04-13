@@ -1,0 +1,17 @@
+\
+1. Get the route host:
+   oc get route {{ include "github-mcp-server.fullname" . }} -o jsonpath='{.spec.host}{"\n"}'
+
+2. Your MCP endpoint is:
+   {{- if .Values.route.enabled }}
+   https://$(oc get route {{ include "github-mcp-server.fullname" . }} -o jsonpath='{.spec.host}'){{ .Values.route.path }}
+   {{- else }}
+   http://{{ include "github-mcp-server.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}{{ .Values.supergateway.streamableHttpPath }}
+   {{- end }}
+
+3. Test health:
+   {{- if .Values.route.enabled }}
+   curl -I https://$(oc get route {{ include "github-mcp-server.fullname" . }} -o jsonpath='{.spec.host}')/healthz
+   {{- else }}
+   curl -I http://{{ include "github-mcp-server.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}/healthz
+   {{- end }}

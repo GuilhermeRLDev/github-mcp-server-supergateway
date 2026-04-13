@@ -1,0 +1,124 @@
+replicaCount: 1
+
+image:
+  # REQUIRED: replace with your actual registry path, e.g. ghcr.io/your-org/github-mcp-server-supergateway
+  repository: ""
+  tag: "0.32.0"
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+  annotations: {}
+
+route:
+  enabled: true
+  host: ""
+  path: /mcp
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  annotations: {}
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+networkPolicy:
+  enabled: false
+  ingress:
+    enabled: true
+    namespaceSelector: {}
+    podSelector: {}
+  egress:
+    enabled: false
+
+github:
+  host: ""
+  personalAccessToken: ""
+  existingSecret: ""
+  secretKey: GITHUB_PERSONAL_ACCESS_TOKEN
+
+  # Choose either named toolsets or explicit tools.
+  toolsets: "repos,issues,pull_requests,actions,code_security"
+  tools: ""
+
+  readOnly: true
+  dynamicToolsets: false
+  insiders: false
+
+  # Optional naming overrides exposed by the MCP server during initialization.
+  serverName: ""
+  serverTitle: ""
+
+supergateway:
+  port: 8000
+  outputTransport: streamableHttp
+  streamableHttpPath: /mcp
+  stateful: true
+  sessionTimeout: 60000
+  cors:
+    enabled: false
+    allowedOrigins: []
+  logLevel: info
+  extraArgs: []
+
+probes:
+  liveness:
+    enabled: true
+    path: /healthz
+    initialDelaySeconds: 20
+    periodSeconds: 20
+    timeoutSeconds: 3
+    failureThreshold: 6
+  readiness:
+    enabled: true
+    path: /healthz
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 6
+
+extraEnv: []
+extraEnvFrom: []
+
+extraVolumes: []
+extraVolumeMounts: []

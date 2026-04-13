@@ -1,0 +1,24 @@
+# syntax=docker/dockerfile:1.7
+ARG GO_VERSION=1.24
+ARG NODE_VERSION=22
+
+FROM golang:${GO_VERSION}-alpine AS builder
+ARG GITHUB_MCP_SERVER_VERSION=v0.32.0
+RUN apk add --no-cache git ca-certificates
+WORKDIR /src
+RUN go install github.com/github/github-mcp-server/cmd/github-mcp-server@${GITHUB_MCP_SERVER_VERSION}
+
+FROM node:${NODE_VERSION}-alpine
+ARG SUPERGATEWAY_VERSION=2.4.0
+RUN npm install -g supergateway@${SUPERGATEWAY_VERSION} \
+    && addgroup -S app \
+    && adduser -S -G app app
+WORKDIR /app
+COPY --from=builder /go/bin/github-mcp-server /usr/local/bin/github-mcp-server
+COPY scripts/entrypoint.sh /app/entrypoint.sh
+RUN chmod 0555 /app/entrypoint.sh /usr/local/bin/github-mcp-server \
+    && chgrp -R 0 /app /usr/local/bin/github-mcp-server \
+    && chmod -R g=u /app
+USER 1001
+EXPOSE 8000
+ENTRYPOINT ["/app/entrypoint.sh"]
