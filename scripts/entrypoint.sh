@@ -13,7 +13,9 @@ stdio_cmd='github-mcp-server stdio'
 # Supergateway listens on the inner port; the proxy (PID 1) listens on $PORT.
 set -- supergateway   --stdio "$stdio_cmd"   --outputTransport "$OUTPUT_TRANSPORT"   --port "$INNER_PORT"   --streamableHttpPath "$STREAMABLE_HTTP_PATH"   --healthEndpoint /healthz   --logLevel "$LOG_LEVEL"
 
-if [ "${MCP_STATEFUL:-1}" = "1" ]; then
+# --stateful is only meaningful for streamableHttp; SSE is stateful per connection by design
+# and using --stateful with SSE causes "Already connected to a transport" errors.
+if [ "${MCP_STATEFUL:-1}" = "1" ] && [ "$OUTPUT_TRANSPORT" != "sse" ]; then
   set -- "$@" --stateful --sessionTimeout "$SESSION_TIMEOUT"
 fi
 

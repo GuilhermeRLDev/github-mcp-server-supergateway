@@ -9,7 +9,7 @@ WORKDIR /src
 RUN go install github.com/github/github-mcp-server/cmd/github-mcp-server@${GITHUB_MCP_SERVER_VERSION}
 
 FROM node:${NODE_VERSION}-alpine
-ARG SUPERGATEWAY_VERSION=2.4.0
+ARG SUPERGATEWAY_VERSION=3.4.3
 RUN npm install -g supergateway@${SUPERGATEWAY_VERSION} \
     && addgroup -S app \
     && adduser -S -G app app

@@ -5,6 +5,7 @@ const http = require('http');
 
 const INNER_PORT = parseInt(process.env.MCP_INNER_PORT || '8001', 10);
 const OUTER_PORT = parseInt(process.env.MCP_PORT || '8000', 10);
+const OUTPUT_TRANSPORT = (process.env.MCP_OUTPUT_TRANSPORT || 'sse').trim();
 
 // OAuth discovery endpoints that MCP clients probe before connecting.
 // Returning a JSON 404 tells the SDK there is no OAuth on this server and
@@ -41,14 +42,16 @@ function checkAuth(req, res) {
 }
 // ---------------------------------------------------------------------------
 
-// When supergateway runs in SSE mode it listens on /sse, but most MCP clients
-// (including Claude Code) default to /mcp.  Rewrite /mcp → /sse so both paths work.
+// In SSE mode supergateway listens on /sse, but MCP clients default to /mcp.
+// Rewrite /mcp → /sse only for SSE transport; streamableHttp already uses /mcp.
 const MCP_PATH = '/mcp';
 const SSE_PATH = '/sse';
 
 function rewritePath(url) {
-  if (url === MCP_PATH || url.startsWith(MCP_PATH + '?')) {
-    return SSE_PATH + url.slice(MCP_PATH.length);
+  if (OUTPUT_TRANSPORT === 'sse') {
+    if (url === MCP_PATH || url.startsWith(MCP_PATH + '?')) {
+      return SSE_PATH + url.slice(MCP_PATH.length);
+    }
   }
   return url;
 }

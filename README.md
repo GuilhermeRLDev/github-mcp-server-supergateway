@@ -68,8 +68,9 @@ route:
   path: /mcp
 
 supergateway:
-  stateful: true
+  outputTransport: streamableHttp
   streamableHttpPath: /mcp
+  stateful: false
 ```
 
 ## Client URL
@@ -86,12 +87,12 @@ Your MCP endpoint will typically be:
 https://<route-host>/mcp
 ```
 
-## Addind remore MCP Server to Claude
+## Adding remote MCP Server to Claude
 
 ```bash
 claude mcp add-json github-ocp "$(cat <<'HEREDOC'
 {
-  "type": "sse",
+  "type": "http",
   "url": "https://github-mcp-github-mcp-server-g-bot.apps-crc.testing/mcp",
   "headers": {
     "Authorization": "Bearer REPLACE_WITH_TOKEN"
@@ -104,7 +105,7 @@ HEREDOC
 Replace `REPLACE_WITH_TOKEN` with your actual token value, or expand it inline:
 
 ```bash
-claude mcp add-json github-ocp "{\"type\":\"sse\",\"url\":\"https://github-mcp-github-mcp-server-g-bot.apps-crc.testing/mcp\",\"headers\":{\"Authorization\":\"Bearer $TOKEN\"}}"
+claude mcp add-json github-ocp "{\"type\":\"http\",\"url\":\"https://github-mcp-github-mcp-server-g-bot.apps-crc.testing/mcp\",\"headers\":{\"Authorization\":\"Bearer $TOKEN\"}}"
 ```
 
 Make sure `$TOKEN` is set in your shell session to the same value used when deploying the chart.

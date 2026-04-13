@@ -99,9 +99,9 @@ auth:
 
 supergateway:
   port: 8000
-  outputTransport: sse
+  outputTransport: streamableHttp
   streamableHttpPath: /mcp
-  stateful: true
+  stateful: false
   sessionTimeout: 60000
   cors:
     enabled: false
