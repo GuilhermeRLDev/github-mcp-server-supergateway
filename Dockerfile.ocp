@@ -1,12 +1,13 @@
 # syntax=docker/dockerfile:1.7
-ARG GO_VERSION=1.24
 ARG NODE_VERSION=22
 
-FROM golang:${GO_VERSION}-alpine AS builder
+FROM registry.access.redhat.com/ubi9/ubi-minimal AS builder
 ARG GITHUB_MCP_SERVER_VERSION=v0.32.0
-RUN apk add --no-cache git ca-certificates
+ENV GOPATH=/go
+RUN microdnf install -y golang git ca-certificates && microdnf clean all
 WORKDIR /src
-RUN go install github.com/github/github-mcp-server/cmd/github-mcp-server@${GITHUB_MCP_SERVER_VERSION}
+RUN GOFLAGS='-buildvcs=false' CGO_ENABLED=0 \
+    go install github.com/github/github-mcp-server/cmd/github-mcp-server@${GITHUB_MCP_SERVER_VERSION}
 
 FROM node:${NODE_VERSION}-alpine
 ARG SUPERGATEWAY_VERSION=3.4.3
